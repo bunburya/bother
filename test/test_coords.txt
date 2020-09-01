@@ -1,0 +1,17 @@
+# Coordinates for testing bother.py
+# Format: LAT1 LON1 LAT2 LON2
+
+# Mallorca
+39.195468 2.272535 39.998336 3.584351
+
+# Ireland
+51.296094 -11.017116 55.596810 -4.403352
+
+# Lake Constance, Germany
+47.321556 8.830936 47.980224 9.860904
+
+# Lake Titicaca, Peru / Bolivia
+-16.970092 -70.246331 -15.032316 -68.334710
+
+# Alps, Switzerland
+46.408240 9.555657 46.975534 10.378602
