@@ -109,7 +109,7 @@ def resample(memfile: MemoryFile, scale_factor: float) -> MemoryFile:
         
         return dst_memfile
 
-def reproject_raster(memfile: MemoryFile, src_crs: str = MERCATOR, dst_crs: str = PSEUDO_MERCATOR) -> MemoryFile:
+def reproject_raster(memfile: MemoryFile, dst_crs: str, src_crs: str = MERCATOR) -> MemoryFile:
     """Reproject raster with CRS src_crs to new CRS dst_crs."""
     
     print(f'Reprojecting raster from {src_crs} to {dst_crs}.')

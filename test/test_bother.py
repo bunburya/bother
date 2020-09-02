@@ -11,7 +11,7 @@ import shutil
 import numpy as np
 from PIL import Image, ImageChops
 
-from bother.bother import *
+from bother_utils import *
 
 
 EXAMPLES_DIR = 'examples'
