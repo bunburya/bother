@@ -1,17 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-"""A script to produce heightmaps (primarily for OpenTTD) using real-world
-elevation data.
-"""
-
-import sys
 import logging
 import math
 import time
-import argparse
-import os
-import os.path
 import tempfile
 from typing import Optional, Set, Tuple, List
 
@@ -20,23 +9,16 @@ from PIL import Image
 
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
-from rasterio.io import DatasetReader, DatasetWriter, MemoryFile
+from rasterio.io import MemoryFile
 import elevation
 
 
+"""Functions to fetch, manipulate and convert SRTM elevation data."""
+
+
 MERCATOR = 'EPSG:4326'
-PSEUDO_MERCATOR = 'EPSG:3857'
 SRTM_NODATA = -32768
 
-# Situations we need to consider:
-# - High elevation all-land maps:  offset so that lowest point is 1
-# - High elevation maps with lakes: offset so that lowest non-lake point is 1, set lakes to 0
-# - Below sea level all-land maps: offset so that lowest point is 1
-# - Below sea level maps with lakes:  offset so that lowest non-lake point is 1, set lakes to 0
-# - Maps with sea and below sea level land:  set below sea level land to 1
-
-
-### Functions to fetch, manipulate and convert SRTM elevation data
 
 def get_tif_file(left: float, bottom: float, right: float, top: float, to_file: str) -> str:
     """Download SRTM data for the given bounds using the elevation
@@ -290,7 +272,7 @@ def raise_low_pixels(memfile: MemoryFile, max_no_raise: float = 0.0, max_brightn
         
         return dst_memfile
 
-def to_png(memfile: MemoryFile, set_negative: Optional[float] = None, max_brightness: int = 255):
+def to_png(memfile: MemoryFile, zero_floor: bool = False, max_brightness: int = 255):
     """Save raster as a greyscale PNG file to to_file.  If set_negative
     is set, any elevation values below zero are set to that value (which
     should be in the range 0-255).
@@ -299,8 +281,7 @@ def to_png(memfile: MemoryFile, set_negative: Optional[float] = None, max_bright
     print(f'Converting raster to PNG image.')
     with memfile.open() as src:
         data = src.read(1)
-        if set_negative:
-            # TODO: Fix
+        if zero_floor:
             data *= (data > 0)
         max_elev = data.max()
         min_elev = data.min()
@@ -361,160 +342,3 @@ def png_to_file(im: Image, to_file: str):
     
     print(f'Saving PNG image to {to_file}.')
     im.save(to_file)
-
-###  Functions in relation to the command line interface
-
-def error(msg: str):
-    print(f'ERROR: {msg}', file=sys.stderr)
-    sys.exit(1)
-
-def check_namespace(ns: argparse.Namespace):
-    """Check for errors in the arguments passed."""
-    
-    if (ns.bounds is None) and (ns.infile_tif is None) and (ns.infile_png is None):
-        error('Must pass --bounds, --infile-tif or --infile-png.')
-    elif sum(((ns.bounds is not None), (ns.infile_tif is not None), (ns.infile_png is not None))) > 1:
-        error('--bounds, --infile-tif and --infile-png are mutually exclusive.')
-    
-    if (ns.scale_data is not None) and ns.scale_data == 0:
-        error('0 is invalid value for scaling.')
-    
-    if ns.crop:
-        res, mode = ns.crop
-        if mode.lower() not in crop_modes:
-            error(f'Mode must be one of {crop_modes}.')
-        res = res.split('x')
-        try:
-            width = int(res[0])
-            height = int(res[1])
-        except (IndexError, ValueError):
-            error('Size for cropped image must be in form "WIDTHxHEIGHT", where WIDTH and HEIGHT are integers.')
-        if (width <= 0) or (height <= 0):
-            error(f'Invalid dimensions for cropping: {width}x{height}.')
-        
-    if ns.scale_image:
-        res = ns.scale_image.split('x')
-        try:
-            width = int(res[0])
-            height = int(res[1])
-        except (IndexError, ValueError):
-            error('Size for scaled image must be in form "WIDTHxHEIGHT", where WIDTH and HEIGHT are integers.')
-    
-        if (width <= 0) or (height <= 0):
-            error(f'Invalid dimensions for scaling: {width}x{height}.')
-
-def parse_namespace(ns: argparse.Namespace):
-    """Parse the arguments passed and execute request."""
-    
-    tmp_file = None
-    
-    if ns.bounds:
-        if ns.outfile_tif:
-            to_file = os.path.abspath(ns.outfile_tif)
-        else:
-            to_file = os.path.join(tempfile.gettempdir(), f'othg_{time.time()}.tif')
-            tmp_file = to_file
-        lat1, lon1, lat2, lon2 = ns.bounds
-        tif_file = get_tif_file(lon1, lat1, lon2, lat2, to_file)
-    else:
-        tif_file = ns.infile_tif
-
-    if tif_file:
-        with open(tif_file, 'rb') as f:
-            memfile = handle_nodata(MemoryFile(f))
-            if ns.scale_data is not None:
-                memfile = resample(memfile, ns.scale_data)
-            if ns.no_sea:
-                memfile = remove_sea(memfile)
-            if ns.epsg:
-                memfile = reproject_raster(memfile, dst_crs=f'EPSG:{ns.epsg}')
-            if ns.lakes:
-                memfile = set_lakes_to_elev(memfile, ns.lakes)
-            if ns.raise_undersea is not None:
-                memfile = raise_undersea_land(memfile, ns.raise_undersea)
-            if ns.raise_low is not None:
-                memfile = raise_low_pixels(memfile, ns.raise_low, ns.max_brightness)
-            im = to_png(memfile, not ns.raise_low, ns.max_brightness)
-    elif ns.infile_png:
-        im = Image.open(ns.infile_png)
-        
-    if ns.crop:
-        res, mode = ns.crop
-        res = res.split('x')
-        width = int(res[0])
-        height = int(res[1])
-        im = crop_image(im, width, height, mode)
-    if ns.scale_image:
-        res = ns.scale_image.split('x')
-        width = int(res[0])
-        height = int(res[1])
-        im = scale_image(im, width, height)
-        
-    png_to_file(im, ns.outfile)
-    
-    if tmp_file:
-        os.remove(tmp_file)
-    if ns.clear_cache:
-        elevation.clean()
-        
-
-if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser(description='Generate heightmaps from NASA\'s Shuttle Radar Topography Mission '
-                                                 'elevation data, primarily for use in OpenTTD.')
-    
-    # TODO:
-    # - CRS arguments
-    # - scaling and cropping
-    
-    parser.add_argument('-it', '--infile-tif', dest='infile_tif', metavar='FILE',
-                        help='Specify a TIF file to use to generate the heightmap, rather than fetching SRTM data from '
-                             'the internet.')
-    parser.add_argument('-b', '--bounds', type=float, nargs=4, metavar=('BOTTOM', 'LEFT', 'TOP', 'RIGHT'),
-                        help='Specify the bounds (coordinates of bottom-left and top-right points) for which to '
-                             'download the SRTM data.')
-    parser.add_argument('-ot', '--outfile-tif', dest='outfile_tif', metavar='FILE',
-                        help='Save the generated TIF file (before processing) so that it can be re-used.')
-    parser.add_argument('-sd', '--scale-data', type=float, dest='scale_data', metavar='FACTOR',
-                        help='Factor by which to scale the data prior to converting to a PNG. Values lower than one '
-                             'will downsample the data; values greater than one will upsample the data. Bilinear '
-                             'interpolation is used.')
-    parser.add_argument('-e', '--epsg', type=int, metavar='CODE',
-                        help='The EPSG code of the projection to use for the image. Default is 4326 (WGS 84).') 
-    parser.add_argument('-l', '--lakes', type=int, nargs='?', const=80, metavar='SIZE',
-                        help='Detect lakes (as contiguous regions of a minimum size with the exact same elevation) '
-                             'and set their elevation to zero (so they are rendered as water in OpenTTD). If provided, '
-                             'the integer argument determines the minimum number of pixels such an area must contain '
-                             'in order to be considered a lake (default is 80).')
-    parser.add_argument('-ru', '--raise-undersea', type=int, nargs='?', const=1, metavar='ELEVATION',
-                        dest='raise_undersea', help='Raise pixels with an elevation below zero (ie, land that is below '
-                                                    'sea level) to the given level.')
-    parser.add_argument('-rl', '--raise-low', type=float, nargs='?', const=0.0, metavar='ELEVATION', dest='raise_low',
-                        help='Raise pixels with low elevation so that they have a non-zero value in the resulting '
-                             'greyscale image. If a numerical argument is provided, only pixels with elevations '
-                             'above that value will be raised (default is 0).')
-    parser.add_argument('-ns', '--no-sea', dest='no_sea', action='store_true',
-                        help='Increase (or decrease) all elevations so that the lowest elevation is just above sea '
-                             'level. This is helpful when your real world data contains land that is below sea level '
-                             'but the map is entirely inland, so that there is no actual sea.')
-    parser.add_argument('-mb', '--max-brightness', type=int, default=255, dest='max_brightness',
-                        help='Set the maximum brightness in the greyscale PNG (ie, the brightness of the highest point '
-                             'in the data). Should be between 1 and 255; a lower value will lead to a flatter map in '
-                             'OpenTTD.')
-    parser.add_argument('-ip', '-infile-png', dest='infile_png', metavar='FILE',
-                        help='Load FILE to perform cropping and/or scaling, rather than generating a new PNG file from '
-                             'SRTM data.')
-    parser.add_argument('-c', '--crop', nargs=2, metavar=('WIDTHxHEIGHT', 'MODE'),
-                        help='Crop the resulting image to WIDTH x HEIGHT. MODE determines which region of the image to '
-                             'crop to and must be one of nw, n, ne, e, c, w, sw, s, se. Note that you may prefer to '
-                             'do the cropping and scaling in your favourite image editor.')
-    parser.add_argument('-si', '--scale-image', dest='scale_image', metavar='WIDTHxHEIGHT',
-                        help='Scale the resulting image to WIDTH x HEIGHT. Note that you may prefer to do the cropping '
-                             'and scaling in your favourite image editor.')
-    parser.add_argument('-cc', '--clear-cache', dest='clear_cache', action='store_true',
-                        help='Clear cached SRTM data.')
-    parser.add_argument('outfile', help='The file to which the greyscale PNG image will be written.')
-    ns = parser.parse_args()
-    check_namespace(ns)
-    parse_namespace(ns)
-    
