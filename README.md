@@ -8,7 +8,7 @@ The elevation data used for the heightmaps is taken from NASA's Shuttle Radar To
 
 ## Installation
 
-At the outset, you should note that Bother has been developed and tested on Linux.  There is no reason why it shouldn't work on Windows and Mac, but it hasn't been tested out on those platforms.  If you encounter any problems trying to install or use Bother on any platform, please open an issue [https://github.com/bunburya/bother](on GitHub).
+At the outset, you should note that Bother has been developed and tested on Linux.  There is no reason why it shouldn't work on Windows and Mac, but it hasn't been tested out on those platforms.  If you encounter any problems trying to install or use Bother on any platform, please open an issue [on GitHib](https://github.com/bunburya/bother).
 
 Bother uses Python 3 so make sure you have it installed on your computer. 
 

@@ -110,7 +110,14 @@ def parse_namespace(ns: argparse.Namespace):
         height = int(res[1])
         im = scale_image(im, width, height)
         
-    png_to_file(im, ns.outfile)
+    if ns.outfile.endswith('.png'):
+        save_to = ns.outfile
+    else:
+        save_to = ns.outfile + '.png'
+    try:
+        png_to_file(im, save_to)
+    except FileNotFoundError:
+        error(f'Could not save to {save_to}.  Check that the directory to which you want to save exists.')
     
     if tmp_file:
         os.remove(tmp_file)
