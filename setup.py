@@ -15,7 +15,6 @@ setup(
     package_data={},
     author='bunburya',
     author_email='',
-    url='https://github.com/bunburya/bother',
     description='A script to produce heightmaps (primarily for OpenTTD) using real-world elevation data.',
     long_description=long_description,
     long_description_content_type='text/markdown',
