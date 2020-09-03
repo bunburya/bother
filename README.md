@@ -10,6 +10,8 @@ The elevation data used for the heightmaps is taken from NASA's Shuttle Radar To
 
 At the outset, you should note that Bother has been developed and test on Linux.  There is no reason why it shouldn't work on Windows and Mac, but it hasn't been tested out on those platforms.  If you encounter any problems trying to install or use Bother on any platform, please open an issue.
 
+TODO
+
 ## Basic usage
 
 Bother is a command line utility, designed to be called from the command line.

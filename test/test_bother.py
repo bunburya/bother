@@ -9,9 +9,11 @@ import os
 import shutil
 
 import numpy as np
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-from bother_utils import *
+from bother_utils.heightmap import *
+from bother_utils.srtm import *
 
 
 EXAMPLES_DIR = 'examples'
@@ -47,11 +49,15 @@ class BotherTestCase(unittest.TestCase):
         shutil.rmtree(TEST_DIR)
     
     def _assert_images_equal(self, im1, im2):
-        np.testing.assert_array_equal(np.array(im1.getdata()), np.array(im2.getdata()))
+        np.testing.assert_array_equal(
+            np.array(im1.getdata()),
+            np.array(im2.getdata())
+        )
     
     def _assert_image_files_equal(self, fpath1, fpath2):
-        with Image.open(fpath1) as im1, Image.open(fpath2) as im2:
-            self._assert_images_equal(im1, im2)
+        with Image.open(fpath1) as im1:
+            with Image.open(fpath2) as im2:
+                self._assert_images_equal(im1, im2)
     
     def test_1_srtm_tif(self):
         """Test the basic downloading of TIF files."""
@@ -60,7 +66,7 @@ class BotherTestCase(unittest.TestCase):
             bottom, left, top, right = test_coords[eg]
             tif_file = os.path.join(TEST_DIR, f'{eg}.tif')
             eg_tif_file = os.path.join(EXAMPLES_DIR, f'{eg}.tif')
-            get_tif_file(left, bottom, right, top, os.path.abspath(tif_file))
+            create_tif_file(left, bottom, right, top, os.path.abspath(tif_file))
             self._assert_image_files_equal(tif_file, eg_tif_file)
 
     def test_2_resize(self):
@@ -71,7 +77,6 @@ class BotherTestCase(unittest.TestCase):
             with memfile.open() as src:
                 data = src.read(1)
                 shape = data.shape
-            memfile = handle_nodata(memfile)
             with memfile.open() as src:
                 data = src.read(1)
             im = to_png(memfile, True, 255)
@@ -84,7 +89,7 @@ class BotherTestCase(unittest.TestCase):
         """Test data resampling, lake detection, raising low pixels and flattening."""
         
         with open(os.path.join(TEST_DIR, 'ireland.tif'), 'rb') as f:
-            memfile = handle_nodata(MemoryFile(f))
+            memfile = MemoryFile(f)
             memfile = resample(memfile, 0.5)
             memfile = set_lakes_to_elev(memfile, 100)
             memfile = raise_low_pixels(memfile)
@@ -93,7 +98,7 @@ class BotherTestCase(unittest.TestCase):
             self._assert_images_equal(im1, im2)
         
         with open(os.path.join(TEST_DIR, 'ireland.tif'), 'rb') as f:
-            memfile = handle_nodata(MemoryFile(f))
+            memfile = MemoryFile(f)
             memfile = resample(memfile, 0.5)
             memfile = set_lakes_to_elev(memfile, 100)
             memfile = raise_low_pixels(memfile, max_brightness=170)
@@ -107,7 +112,7 @@ class BotherTestCase(unittest.TestCase):
         """
                 
         with open(os.path.join(TEST_DIR, 'titicaca.tif'), 'rb') as f:
-            memfile = handle_nodata(MemoryFile(f))
+            memfile = MemoryFile(f)
             memfile = reproject_raster(memfile, dst_crs='EPSG:3857')
             memfile = set_lakes_to_elev(memfile, min_lake_size=80)
             im1 = to_png(memfile)
@@ -115,7 +120,7 @@ class BotherTestCase(unittest.TestCase):
             self._assert_images_equal(im1, im2)
         
         with open(os.path.join(TEST_DIR, 'alps.tif'), 'rb') as f:
-            memfile = handle_nodata(MemoryFile(f))
+            memfile = MemoryFile(f)
             im1 = to_png(memfile)
         with Image.open(os.path.join(EXAMPLES_DIR, 'alps.png')) as im2:
             self._assert_images_equal(im1, im2)

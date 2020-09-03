@@ -16,10 +16,10 @@ import tempfile
 from typing import Optional, Set, Tuple, List
 
 from rasterio.io import MemoryFile
-import elevation
 
-from bother_utils import (get_tif_file, handle_nodata, remove_sea, resample, reproject_raster, set_lakes_to_elev,
-                    raise_undersea_land, raise_low_pixels, to_png, crop_modes, crop_image, scale_image, png_to_file)
+from bother_utils.srtm import create_tif_file
+from bother_utils.heightmap import (remove_sea, resample, reproject_raster, set_lakes_to_elev, raise_undersea_land,
+                                    raise_low_pixels, to_png, crop_modes, crop_image, scale_image, png_to_file)
 
 
 def error(msg: str):
@@ -73,13 +73,14 @@ def parse_namespace(ns: argparse.Namespace):
             to_file = os.path.join(tempfile.gettempdir(), f'othg_{time.time()}.tif')
             tmp_file = to_file
         lat1, lon1, lat2, lon2 = ns.bounds
-        tif_file = get_tif_file(lon1, lat1, lon2, lat2, to_file)
+        tif_file = create_tif_file(lon1, lat1, lon2, lat2, to_file)
     else:
         tif_file = ns.infile_tif
 
     if tif_file:
         with open(tif_file, 'rb') as f:
-            memfile = handle_nodata(MemoryFile(f))
+            #memfile = handle_nodata(MemoryFile(f))
+            memfile = MemoryFile(f)
             if ns.scale_data is not None:
                 memfile = resample(memfile, ns.scale_data)
             if ns.no_sea:
@@ -113,7 +114,7 @@ def parse_namespace(ns: argparse.Namespace):
     if tmp_file:
         os.remove(tmp_file)
     if ns.clear_cache:
-        elevation.clean()
+        clear_cache()
 
 def get_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='Generate heightmaps from NASA\'s Shuttle Radar Topography Mission '

@@ -9,6 +9,7 @@ verify_ssl = true
 numpy = "*"
 rasterio = "*"
 pillow = "*"
-elevation = "*"
+appdirs = "*"
+requests = "*"
 
 [requires]
