@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """Functions to download SRTM data from CGIAR website and generate a
 TIF file for the desired coordinates using that data.
 """
@@ -139,14 +136,6 @@ def unzip_all(zip_files: Iterable[str], cache_dir: str) -> str:
             with zipfile.ZipFile(fpath, 'r') as zf:
                 zf.extractall(extract_dir)
     return extract_dir
-
-def get_combined_shape(left: float, bottom: float, right: float, top: float) -> Tuple[int, int]:
-    """Get the shape of the array representing the data of a combined
-    TIF file.
-    """
-    transform = get_transform(left, bottom, right, top)
-    (row_max, row_min), (col_min, col_max) = rasterio.transform.rowcol(transform, (left, right), (bottom, top))
-    return abs(row_max - row_min), abs(col_max - col_min) 
 
 def create_tif_file(left: float, bottom: float, right: float, top: float, to_file: Optional[str] = None,
                     cache_dir: str = CACHE_DIR, nodata: int = 0) ->  Union[str, MemoryFile]:

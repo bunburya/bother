@@ -140,21 +140,15 @@ def get_lake(data: np.ndarray, row: int, col: int, checked: np.ndarray, min_size
     candidates = {(row,col)}
     lake = set()
     while candidates:
-        #print(f'# candidates: {len(candidates)}.')
         (_row,_col) = candidates.pop()
-        #print(f'Got candidate {_row},{_col}.')
         if checked[_row,_col]:
-            #print('Candidate checked already.')
             continue
         try:
             candidate_elev = data[_row, _col]
-            #print(f'Candidate elev is {candidate_elev}.')
         except IndexError:
             checked[_row, _col] = 1
-            #print('Candidate OOB.')
             continue
         if candidate_elev == elev:
-            #print('Got a match.')
             lake.add((_row, _col))
             if row > 0:
                 candidates.add((_row-1,_col))

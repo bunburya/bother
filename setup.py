@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
@@ -15,12 +15,14 @@ setup(
     package_data={},
     author='bunburya',
     author_email='',
+    url='https://github.com/bunburya/bother',
     description='A script to produce heightmaps (primarily for OpenTTD) using real-world elevation data.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     keywords='srtm elevation heightmap openttd',
     url='https://github.com/bunburya/bother',
     classifiers=[
+        "Programming Language :: Python :: 3",
         'License :: OSI Approved :: MIT License'
     ]
 )

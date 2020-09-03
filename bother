@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """A script to produce heightmaps (primarily for OpenTTD) using real-world
@@ -15,9 +15,10 @@ import os.path
 import tempfile
 from typing import Optional, Set, Tuple, List
 
+from PIL import Image
 from rasterio.io import MemoryFile
 
-from bother_utils.srtm import create_tif_file
+from bother_utils.srtm import create_tif_file, clear_cache
 from bother_utils.heightmap import (remove_sea, resample, reproject_raster, set_lakes_to_elev, raise_undersea_land,
                                     raise_low_pixels, to_png, crop_modes, crop_image, scale_image, png_to_file)
 
@@ -154,7 +155,7 @@ def get_arg_parser() -> argparse.ArgumentParser:
                         help='Set the maximum brightness in the greyscale PNG (ie, the brightness of the highest point '
                              'in the data). Should be between 1 and 255; a lower value will lead to a flatter map in '
                              'OpenTTD.')
-    parser.add_argument('-ip', '-infile-png', dest='infile_png', metavar='FILE',
+    parser.add_argument('-ip', '--infile-png', dest='infile_png', metavar='FILE',
                         help='Load FILE to perform cropping and/or scaling, rather than generating a new PNG file from '
                              'SRTM data.')
     parser.add_argument('-c', '--crop', nargs=2, metavar=('WIDTHxHEIGHT', 'MODE'),
