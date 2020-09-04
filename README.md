@@ -10,9 +10,9 @@ The elevation data used for the heightmaps is taken from NASA's Shuttle Radar To
 
 At the outset, you should note that Bother has been developed and tested on Linux.  There is no reason why it shouldn't work on Windows and Mac, but it hasn't been tested out on those platforms.  If you encounter any problems trying to install or use Bother on any platform, please open an issue [on GitHib](https://github.com/bunburya/bother).
 
-Bother uses Python 3 so make sure you have it installed on your computer. 
+Bother uses Python 3 so make sure you have it installed on your computer.  Then, you can install Bother from PyPI with `pip3 install bother`.  If you don't have pip installed, you can download the source from GitHub and run `python3 setup.py install` in the source folder.
 
-Then, you can install Bother from PyPI with `pip3 install bother`.  If you don't have pip installed, you can download the source from GitHub and run `python3 setup.py install` in the source folder.   
+ArchLinux users can also install Bother from the AUR (package name `bother`).
 
 ## Basic usage
 
