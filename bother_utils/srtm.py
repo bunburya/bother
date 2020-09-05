@@ -128,8 +128,7 @@ def fetch_all_zips(fnames: Dict[Tuple[int, int], str], cache_dir: str) -> Dict[T
 
 def unzip_all(zip_files: Iterable[str], cache_dir: str) -> str:
     extract_dir = get_extract_dir(cache_dir)
-    if not os.path.exists(extract_dir):
-        os.mkdir(extract_dir)
+    os.makedirs(extract_dir, exist_ok=True)
     for fpath in zip_files:
         if fpath is not None:
             print(f'Extracting {fpath} to {extract_dir}.')
@@ -145,8 +144,7 @@ def create_tif_file(left: float, bottom: float, right: float, top: float, to_fil
     rasterio.io.MemoryFile and returns that.
     """
     
-    if not os.path.exists(cache_dir):
-        os.mkdir(cache_dir)
+    os.makedirs(cache_dir, exist_ok=True)
     
     xy = get_all_xy_components(left, bottom, right, top)
     zip_fnames = {}
