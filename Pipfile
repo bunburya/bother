@@ -11,5 +11,6 @@ rasterio = "*"
 pillow = "*"
 appdirs = "*"
 requests = "*"
+tqdm = "*"
 
 [requires]

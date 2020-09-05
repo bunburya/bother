@@ -13,6 +13,7 @@ import appdirs
 import rasterio
 import rasterio.merge
 from rasterio.io import MemoryFile
+from tqdm import tqdm
 
 
 ZIP_BASE_URL = 'http://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF/'
@@ -55,11 +56,14 @@ def get_tif_fpath(x: int, y: int, cache_dir: str) -> str:
     return os.path.join(cache_dir, 'extracted', TIF_FNAME.format(x=x, y=y))
 
 def download_zip(url: str, save_path: str, chunk_size: int = 1024):
-    r = requests.get(url)
+    r = requests.get(url, stream=True)
     r.raise_for_status()
-    with open(save_path, 'wb') as fd:
-        for chunk in r.iter_content(chunk_size=chunk_size):
-            fd.write(chunk)
+    total_size_in_bytes = int(r.headers.get('content-length', 0))
+    with tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True) as pbar:
+        with open(save_path, 'wb') as fd:
+            for chunk in r.iter_content(chunk_size=chunk_size):
+                pbar.update(len(chunk))
+                fd.write(chunk)
     return save_path
 
 def get_xy_components(lon: float, lat: float) -> Tuple[int, int]:
