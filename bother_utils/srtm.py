@@ -59,11 +59,16 @@ def download_zip(url: str, save_path: str, chunk_size: int = 1024):
     r = requests.get(url, stream=True)
     r.raise_for_status()
     total_size_in_bytes = int(r.headers.get('content-length', 0))
+    
+    # Write to a temporary file so that incompletely downloaded tiles are
+    # not considered to have been cached
+    temp_save_path = save_path + ".part"
     with tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True) as pbar:
-        with open(save_path, 'wb') as fd:
+        with open(temp_save_path, 'wb') as fd:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 pbar.update(len(chunk))
                 fd.write(chunk)
+    os.rename(temp_save_path, save_path)
     return save_path
 
 def get_xy_components(lon: float, lat: float) -> Tuple[int, int]:
