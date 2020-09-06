@@ -17,7 +17,7 @@ setup(
     version='0.1',
     packages=find_packages(),
     scripts=scripts,
-    install_requires=['numpy', 'rasterio', 'pillow', 'requests', 'appdirs'],
+    install_requires=['numpy', 'rasterio', 'pillow', 'requests', 'appdirs', 'tqdm'],
     package_data={},
     author='bunburya',
     author_email='',
