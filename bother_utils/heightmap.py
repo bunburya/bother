@@ -1,3 +1,6 @@
+"""Functions to manipulate TIF files and convert them into heightmaps."""
+
+
 import logging
 import math
 import time
@@ -8,12 +11,11 @@ from typing import Optional, Set, Tuple, List
 import numpy as np
 from PIL import Image
 
-"""Functions to manipulate TIF files and convert them into heightmaps."""
-
-
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from rasterio.io import MemoryFile
+
+from bother_utils.srtm import SRTM_NODATA
 
 
 DEFAULT_CRS = 'EPSG:4326' # Mercator
@@ -202,9 +204,9 @@ def set_lakes_to_elev(memfile: MemoryFile, min_lake_size: int, fill_lakes_as: in
 
         return dst_memfile
 
-def raise_undersea_land(memfile: MemoryFile, raise_to: int = 1):
-    """Raise land with a negative elevation (ie, land that is below sea
-    level) to raise_to. Probably shouldn't be called before
+def raise_undersea_land(memfile: MemoryFile, raise_to: int = 1, nodata: int = SRTM_NODATA):
+    """Raise land with zero or negative elevation (ie, land that is at or
+    below sea level) to raise_to. Probably shouldn't be called before
     set_lakes_to_elev, otherwise the newly raised land will be picked up
     as a lake by that function.
     """
@@ -212,8 +214,8 @@ def raise_undersea_land(memfile: MemoryFile, raise_to: int = 1):
     with memfile.open() as src:
         data = src.read(1)
         
-        print(f'Raising pixels of elevation < 0 to {raise_to}.')
-        data = np.where((data < 0), raise_to, data)
+        print(f'Raising pixels of elevation <= 0 to {raise_to} (ignoring NODATA).')
+        data = np.where((data != nodata) & (data <= 0), raise_to, data)
     
         dst_memfile = MemoryFile()
         kwargs = src.profile.copy()
@@ -251,7 +253,7 @@ def raise_low_pixels(memfile: MemoryFile, max_no_raise: float = 0.0, max_brightn
         
         return dst_memfile
 
-def to_png(memfile: MemoryFile, zero_floor: bool = False, max_brightness: int = 255):
+def to_png(memfile: MemoryFile, zero_floor: bool = False, max_brightness: int = 255, nodata: int = SRTM_NODATA):
     """Save raster as a greyscale PNG file to to_file.  If set_negative
     is set, any elevation values below zero are set to that value (which
     should be in the range 0-255).
@@ -260,8 +262,9 @@ def to_png(memfile: MemoryFile, zero_floor: bool = False, max_brightness: int = 
     print(f'Converting raster to PNG image.')
     with memfile.open() as src:
         data = src.read(1)
+        data[data == nodata] = 0
         if zero_floor:
-            data *= (data > 0)
+            data[data < 0] = 0
         max_elev = data.max()
         min_elev = data.min()
         scale_factor = max_brightness / (max_elev - min_elev)

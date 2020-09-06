@@ -24,7 +24,8 @@ test_coords = {
     'ireland': (51.296094, -11.017116, 55.596810, -4.403352),
     'constance': (47.321556, 8.830936, 47.980224, 9.860904),
     'titicaca': (-16.970092, -70.246331, -15.032316, -68.334710),
-    'alps': (46.408240, 9.555657, 46.975534, 10.378602)
+    'alps': (46.408240, 9.555657, 46.975534, 10.378602),
+    'germany_nw': (53.373069, 7.387423, 53.814826, 8.234738)
 }
 
 
@@ -134,6 +135,18 @@ class BotherTestCase(unittest.TestCase):
         eg_tif_file = os.path.join(EXAMPLES_DIR, f'mallorca.tif')
         create_tif_file(left, bottom, right, top, os.path.abspath(tif_file), cache_dir=cache_dir)
         self._assert_image_files_equal(tif_file, eg_tif_file)
+    
+    def test_6_raise_undersea(self):
+        """Test raising undersea pixels."""
+        
+        bottom, left, top, right = test_coords['germany_nw']
+        with open(os.path.join(EXAMPLES_DIR, 'germany_nw.tif'), 'rb') as f:
+            memfile = MemoryFile(f)
+            memfile = raise_undersea_land(memfile, 1)
+            memfile = raise_low_pixels(memfile, 0)
+            im1 = to_png(memfile)
+        with Image.open(os.path.join(EXAMPLES_DIR, 'germany_nw_undersea_raised.png')) as im2:
+            self._assert_images_equal(im1, im2)
 
 if __name__ == '__main__':
     unittest.main()
