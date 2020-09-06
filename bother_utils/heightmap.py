@@ -160,10 +160,10 @@ def get_lake(data: np.ndarray, row: int, col: int, checked: np.ndarray, min_size
             candidates.add((_row,_col+1))
         checked[_row, _col] = 1
     if len(lake) >= min_size:
-    #    print(f'Found lake of size {len(lake)}.')
+        #print(f'Found lake of size {len(lake)}.')
         return lake
 
-def get_all_lakes(data: np.ndarray, min_size: int) -> List[Set[Tuple[int, int]]]:
+def get_all_lakes(data: np.ndarray, min_size: int, nodata: int = SRTM_NODATA) -> List[Set[Tuple[int, int]]]:
     """Find all lakes in the data.  A lake is defined as a contiguous
     region of at least min_size pixels of the exact same elevation."""
 
@@ -171,22 +171,26 @@ def get_all_lakes(data: np.ndarray, min_size: int) -> List[Set[Tuple[int, int]]]
     checked = np.zeros((height+2, width+2))
     lakes = []
     for c in range(width):
-        if data[:,c].max() == 0.0:
+        if (data[:,c] == nodata).all():
             checked[:,c] = 1
             continue
         for r in range(height):
             # Do basic checks before calling function, to avoid function call overhead
-            if (not checked[r, c]) and (data[r, c] > 0.0):
+            if (not checked[r, c]) and (data[r, c] != nodata):
                 lake = get_lake(data, r, c, checked, min_size)
                 if lake is not None:
                     lakes.append(lake)
             checked[r, c] = 1
     return lakes
 
-def set_lakes_to_elev(memfile: MemoryFile, min_lake_size: int, fill_lakes_as: int = 0) -> MemoryFile:
+def set_lakes_to_elev(memfile: MemoryFile, min_lake_size: int, fill_lakes_as: int = None,
+                      nodata: int = SRTM_NODATA) -> MemoryFile:
     """Find all lakes in the data for a raster and set the elevation of
     the relevant pixels to fill_lakes_as.
     """
+    
+    if fill_lakes_as is None:
+        fill_lakes_as = nodata
     
     print(f'Finding lakes with minimum size of {min_lake_size} and setting elevation to {fill_lakes_as}.')
     with memfile.open() as src:

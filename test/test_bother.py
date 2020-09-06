@@ -89,16 +89,17 @@ class BotherTestCase(unittest.TestCase):
     def test_3_downsample_lakes_raise_low_flat(self):
         """Test data resampling, lake detection, raising low pixels and flattening."""
         
-        with open(os.path.join(TEST_DIR, 'ireland.tif'), 'rb') as f:
+        with open(os.path.join(EXAMPLES_DIR, 'ireland.tif'), 'rb') as f:
             memfile = MemoryFile(f)
             memfile = resample(memfile, 0.5)
             memfile = set_lakes_to_elev(memfile, 100)
             memfile = raise_low_pixels(memfile)
             im1 = to_png(memfile)
+        
         with Image.open(os.path.join(EXAMPLES_DIR, 'ireland_resampled_lakes_low_raised.png')) as im2:
             self._assert_images_equal(im1, im2)
         
-        with open(os.path.join(TEST_DIR, 'ireland.tif'), 'rb') as f:
+        with open(os.path.join(EXAMPLES_DIR, 'ireland.tif'), 'rb') as f:
             memfile = MemoryFile(f)
             memfile = resample(memfile, 0.5)
             memfile = set_lakes_to_elev(memfile, 100)
