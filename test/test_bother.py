@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-sys.path.append(sys.argv[1])
+# sys.path.append(sys.argv[1])
 
 import unittest
 import os
@@ -16,8 +16,8 @@ from bother_utils.heightmap import *
 from bother_utils.srtm import *
 
 
-EXAMPLES_DIR = 'examples'
-TEST_DIR = 'test_data'
+EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), 'examples')
+TEST_DIR = os.path.join(os.path.dirname(__file__), 'test_data')
 
 test_coords = {
     'mallorca': (39.195468, 2.272535, 39.998336, 3.584351),
@@ -111,7 +111,7 @@ class BotherTestCase(unittest.TestCase):
         Also tests reprojection and upsampling of data.
         """
                 
-        with open(os.path.join(TEST_DIR, 'titicaca.tif'), 'rb') as f:
+        with open(os.path.join(EXAMPLES_DIR, 'titicaca.tif'), 'rb') as f:
             memfile = MemoryFile(f)
             memfile = reproject_raster(memfile, dst_crs='EPSG:3857')
             memfile = set_lakes_to_elev(memfile, min_lake_size=80)
@@ -119,11 +119,21 @@ class BotherTestCase(unittest.TestCase):
         with Image.open(os.path.join(EXAMPLES_DIR, 'titicaca_lakes_3857.png')) as im2:
             self._assert_images_equal(im1, im2)
         
-        with open(os.path.join(TEST_DIR, 'alps.tif'), 'rb') as f:
+        with open(os.path.join(EXAMPLES_DIR, 'alps.tif'), 'rb') as f:
             memfile = MemoryFile(f)
             im1 = to_png(memfile)
         with Image.open(os.path.join(EXAMPLES_DIR, 'alps.png')) as im2:
             self._assert_images_equal(im1, im2)
+    
+    def test_5_nested_cache_dir(self):
+        """Test cache directory creation when multiple levels of the cache path do not exist."""
+        
+        bottom, left, top, right = test_coords["mallorca"]
+        cache_dir = os.path.join(TEST_DIR, "level1", "level2")
+        tif_file = os.path.join(TEST_DIR, f'mallorca.tif')
+        eg_tif_file = os.path.join(EXAMPLES_DIR, f'mallorca.tif')
+        create_tif_file(left, bottom, right, top, os.path.abspath(tif_file), cache_dir=cache_dir)
+        self._assert_image_files_equal(tif_file, eg_tif_file)
 
 if __name__ == '__main__':
-    unittest.main(argv=['hi'])
+    unittest.main()

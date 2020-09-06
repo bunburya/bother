@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 from setuptools import setup, find_packages
 
 with open('README.md') as f:
     long_description = f.read()
 
+scripts = ['bother']
+
+if os.name == 'nt':
+    scripts.append(os.path.join('scripts', 'bother.bat'))
+    
 setup(
     name='Bother',
     version='0.1',
     packages=find_packages(),
-    scripts=['bother'],
+    scripts=scripts,
     install_requires=['numpy', 'rasterio', 'pillow', 'requests', 'appdirs', 'tqdm'],
     package_data={},
     author='bunburya',
