@@ -24,6 +24,7 @@ TILE_X_BOUNDS = (1, 72)
 TILE_Y_BOUNDS = (1, 24)
 TILE_SHAPE = (6000, 6000)
 SRTM_NODATA = -32768
+#SRTM_NODATA = 65535
 CACHE_DIR = appdirs.user_cache_dir('bother', appauthor=False)
 
 
@@ -146,7 +147,7 @@ def unzip_all(zip_files: Iterable[str], cache_dir: str) -> str:
     return extract_dir
 
 def create_tif_file(left: float, bottom: float, right: float, top: float, to_file: Optional[str] = None,
-                    cache_dir: str = CACHE_DIR, nodata: int = 0) ->  Union[str, MemoryFile]:
+                    cache_dir: str = CACHE_DIR, nodata: int = SRTM_NODATA) ->  Union[str, MemoryFile]:
     """Create a TIF file using SRTM data  for the box defined by left,
     bottom, right, top.  If to_file is provided, saves the resulting
     file to to_file and returns the path; otherwise, creates a
@@ -161,7 +162,7 @@ def create_tif_file(left: float, bottom: float, right: float, top: float, to_fil
         zip_fnames[(x, y)] = ZIP_FNAME.format(x=x, y=y)
     zip_fpaths = fetch_all_zips(zip_fnames, cache_dir)
     unzip_all(zip_fpaths.values(), cache_dir)
-    srcs = [rasterio.open(get_tif_fpath(x, y, cache_dir), 'r') for x, y in xy]
+    srcs = [rasterio.open(get_tif_fpath(x, y, cache_dir), 'r', nodata=nodata) for x, y in xy]
     print(f'Creating TIF file from following files: {[s.name for s in srcs]}.')
     #print(f'Heights are: {[s.height for s in srcs]}.')
     #print(f'Widths are: {[s.width for s in srcs]}.')

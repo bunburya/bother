@@ -8,9 +8,9 @@ The elevation data used for the heightmaps is taken from NASA's [Shuttle Radar T
 
 ## Installation
 
-At the outset, you should note that Bother has been developed and tested on Linux.  I am not aware of any reason why it shouldn't work on Windows and Mac, but it hasn't been tested on those platforms (and with respect to Windows, some of the dependencies may be difficult to install).  If you encounter any problems trying to install or use Bother on any platform (that aren't related to installing dependencies), please open an issue [on GitHib](https://github.com/bunburya/bother).
+At the outset, you should note that Bother has been developed and tested on Linux.  I am not aware of any reason why it shouldn't work on Windows and Mac, but it hasn't been tested on those platforms.  If you encounter any problems trying to install or use Bother on any platform (that aren't related to installing dependencies), please open an issue [on GitHib](https://github.com/bunburya/bother).
 
-Bother uses [Python 3](https://www.python.org/downloads/) so make sure you have it installed on your computer.  Then, you can install Bother from [PyPI](https://www.python.org/downloads/) with `pip3 install bother`.  If you don't have pip installed, you can download the source from GitHub and run `python3 setup.py install` in the source folder.
+Bother uses [Python 3](https://www.python.org/downloads/) so make sure you have it installed on your computer.  Then, you can install Bother from [PyPI](https://www.python.org/downloads/) with `pip3 install bother`.  If you don't have pip installed, you can download the source from GitHub and run `python3 setup.py install` in the source folder.  On Windows, certain of the dependencies (particularly rasterio and its dependencies) are easier installed through [Conda](https://docs.conda.io/en/latest/).
 
 ArchLinux users can also install Bother from [the AUR](https://aur.archlinux.org/packages/bother/) (package name `bother`).
 
@@ -42,9 +42,9 @@ By default, because the elevation of every point is converted to an integer betw
 
 If you provide a numerical argument directly after the `--raise-low` option, then only elevation values above that value will be rounded up to 1.  For example, if you provide `--raise-low 1`, an elevation of 1 will be rounded down to 0 (assuming it would have been rounded down in any event), whereas an elevation above 1 but that would otherwise have been rounded down to 0 will be rounded up. 
 
-### Raising below sea level pixels
+### Raising at- or below-sea level pixels
 
-OpenTTD cannot comprehend the concept of dry land below sea level; the lowest elevation it understands is sea level, and anything at sea level is rendered as sea.  Accordingly, if the area you are mapping contains both sea and dry land that is below sea level (ie, elevation < 0), you can provide the `--raise-undersea` option to set the elevation of the below sea level points to some value above 0, so that it will be rendered as land in OpenTTD.  By default, the `--raise-undersea` option will give those points an elevation of 1 metre above sea level, in which case you may need to also call `--raise-low` to ensure that they are actually rendered as land.  Alternatively, you can provide some numerical argument to the `--raise-undersea` option to set the elevation of the relevant points to a custom value. 
+OpenTTD cannot comprehend the concept of dry land below sea level; the lowest elevation it understands is sea level, and anything at sea level is rendered as sea.  Accordingly, if the area you are mapping contains both sea and dry land that is at or below sea level (ie, elevation <= 0), you can provide the `--raise-undersea` option to set the elevation of those points to some value above 0, so that it will be rendered as land in OpenTTD.  By default, the `--raise-undersea` option will give those points an elevation of 1 metre above sea level, in which case you may need to also call `--raise-low` to ensure that they are actually rendered as land.  Alternatively, you can provide some numerical argument to the `--raise-undersea` option to set the elevation of the relevant points to a custom value. 
 
 ### Lake detection
 

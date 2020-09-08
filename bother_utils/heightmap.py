@@ -1,3 +1,6 @@
+"""Functions to manipulate TIF files and convert them into heightmaps."""
+
+
 import logging
 import math
 import time
@@ -8,12 +11,11 @@ from typing import Optional, Set, Tuple, List
 import numpy as np
 from PIL import Image
 
-"""Functions to manipulate TIF files and convert them into heightmaps."""
-
-
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from rasterio.io import MemoryFile
+
+from bother_utils.srtm import SRTM_NODATA
 
 
 DEFAULT_CRS = 'EPSG:4326' # Mercator
@@ -158,10 +160,10 @@ def get_lake(data: np.ndarray, row: int, col: int, checked: np.ndarray, min_size
             candidates.add((_row,_col+1))
         checked[_row, _col] = 1
     if len(lake) >= min_size:
-    #    print(f'Found lake of size {len(lake)}.')
+        #print(f'Found lake of size {len(lake)}.')
         return lake
 
-def get_all_lakes(data: np.ndarray, min_size: int) -> List[Set[Tuple[int, int]]]:
+def get_all_lakes(data: np.ndarray, min_size: int, nodata: int = SRTM_NODATA) -> List[Set[Tuple[int, int]]]:
     """Find all lakes in the data.  A lake is defined as a contiguous
     region of at least min_size pixels of the exact same elevation."""
 
@@ -169,22 +171,26 @@ def get_all_lakes(data: np.ndarray, min_size: int) -> List[Set[Tuple[int, int]]]
     checked = np.zeros((height+2, width+2))
     lakes = []
     for c in range(width):
-        if data[:,c].max() == 0.0:
+        if (data[:,c] == nodata).all():
             checked[:,c] = 1
             continue
         for r in range(height):
             # Do basic checks before calling function, to avoid function call overhead
-            if (not checked[r, c]) and (data[r, c] > 0.0):
+            if (not checked[r, c]) and (data[r, c] != nodata):
                 lake = get_lake(data, r, c, checked, min_size)
                 if lake is not None:
                     lakes.append(lake)
             checked[r, c] = 1
     return lakes
 
-def set_lakes_to_elev(memfile: MemoryFile, min_lake_size: int, fill_lakes_as: int = 0) -> MemoryFile:
+def set_lakes_to_elev(memfile: MemoryFile, min_lake_size: int, fill_lakes_as: int = None,
+                      nodata: int = SRTM_NODATA) -> MemoryFile:
     """Find all lakes in the data for a raster and set the elevation of
     the relevant pixels to fill_lakes_as.
     """
+    
+    if fill_lakes_as is None:
+        fill_lakes_as = nodata
     
     print(f'Finding lakes with minimum size of {min_lake_size} and setting elevation to {fill_lakes_as}.')
     with memfile.open() as src:
@@ -202,9 +208,9 @@ def set_lakes_to_elev(memfile: MemoryFile, min_lake_size: int, fill_lakes_as: in
 
         return dst_memfile
 
-def raise_undersea_land(memfile: MemoryFile, raise_to: int = 1):
-    """Raise land with a negative elevation (ie, land that is below sea
-    level) to raise_to. Probably shouldn't be called before
+def raise_undersea_land(memfile: MemoryFile, raise_to: int = 1, nodata: int = SRTM_NODATA):
+    """Raise land with zero or negative elevation (ie, land that is at or
+    below sea level) to raise_to. Probably shouldn't be called before
     set_lakes_to_elev, otherwise the newly raised land will be picked up
     as a lake by that function.
     """
@@ -212,8 +218,8 @@ def raise_undersea_land(memfile: MemoryFile, raise_to: int = 1):
     with memfile.open() as src:
         data = src.read(1)
         
-        print(f'Raising pixels of elevation < 0 to {raise_to}.')
-        data = np.where((data < 0), raise_to, data)
+        print(f'Raising pixels of elevation <= 0 to {raise_to} (ignoring NODATA).')
+        data = np.where((data != nodata) & (data <= 0), raise_to, data)
     
         dst_memfile = MemoryFile()
         kwargs = src.profile.copy()
@@ -251,7 +257,7 @@ def raise_low_pixels(memfile: MemoryFile, max_no_raise: float = 0.0, max_brightn
         
         return dst_memfile
 
-def to_png(memfile: MemoryFile, zero_floor: bool = False, max_brightness: int = 255):
+def to_png(memfile: MemoryFile, zero_floor: bool = False, max_brightness: int = 255, nodata: int = SRTM_NODATA):
     """Save raster as a greyscale PNG file to to_file.  If set_negative
     is set, any elevation values below zero are set to that value (which
     should be in the range 0-255).
@@ -260,8 +266,9 @@ def to_png(memfile: MemoryFile, zero_floor: bool = False, max_brightness: int = 
     print(f'Converting raster to PNG image.')
     with memfile.open() as src:
         data = src.read(1)
+        data[data == nodata] = 0
         if zero_floor:
-            data *= (data > 0)
+            data[data < 0] = 0
         max_elev = data.max()
         min_elev = data.min()
         scale_factor = max_brightness / (max_elev - min_elev)
