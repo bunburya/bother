@@ -34,7 +34,7 @@ Providing the `--scale-data` option followed by a number will resample the eleva
 
 ### Reprojecting
 
-By default, the data will be displayed using the [WGS 84](https://en.wikipedia.org/wiki/World_Geodetic_System#WGS84) (EPSG:4326) spatial reference system for mapping latitude / longitude coordinates to pixels.  If you would like to use some other spatial reference system, you can provide the `--epsg` option followed by the numerical EPSG code of the relevant system.  For example, providing `--epsg 3857` would result in the data being projected using the [Web Mercator projection](https://en.wikipedia.org/wiki/Web_Mercator_projection) that is used by most popular web-based mapping applications.
+By default, the data will be displayed using the [Web Mercator projection](https://en.wikipedia.org/wiki/Web_Mercator_projection) (EPSG:3857) spatial reference system for mapping latitude / longitude coordinates to pixels.  This is the projection that is used by most popular web-based mapping applications, such as Google Maps and OpenStreetMap.  If you would like to use some other spatial reference system, you can provide the `--epsg` option followed by the numerical EPSG code of the relevant system.
 
 ### Raising low (but above sea level) pixels
 
@@ -82,9 +82,9 @@ Provide the `--scale-image` option along with the desired resolution (in `WIDTHx
 
 ## Examples
 
-Here, we call Bother to create a PNG file of the rectangle bounded by 51.296094, -11.017116 to 55.596810, -4.403352 (roughly, the island of Ireland, with a bit of Scotland, Wales and the Isle of Man).  We tell Bother to downsample the data by half, reproject the data in the Web Mercator projection, detect lakes and raise any low-lying pixels.
+Here, we call Bother to create a PNG file of the rectangle bounded by 51.296094, -11.017116 to 55.596810, -4.403352 (roughly, the island of Ireland, with a bit of Scotland, Wales and the Isle of Man).  We tell Bother to downsample the data by half, detect lakes and raise any low-lying pixels.
 
-`bother --scale-data 0.5 --epsg 3857 --lakes --raise-low --bounds 51.296094 -11.017116 55.596810 -4.403352 ireland.png`
+`bother --scale-data 0.5 --lakes --raise-low --bounds 51.296094 -11.017116 55.596810 -4.403352 ireland.png`
 
 If all goes well, you should see (among other output) a message telling you that the output image size is 3151x3531.  We want the image to be 4096x4096 so we can play it as a large map in OpenTTD.  So we call Bother again, this time telling it to take the previously created PNG file, crop it to 3151x3151 (keeping the centre of the image, ie, removing the edges) and scale it to 4096x4096.
 

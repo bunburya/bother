@@ -19,7 +19,6 @@ from bother_utils.srtm import SRTM_NODATA
 
 
 WGS84 = 'EPSG:4326' # Mercator - The default CRS used in the STRM data
-WEB_MERCATOR = 'EPSG:3857' # Web Mercator - The projection used by Google Maps, OpenStreetMap, etc.
 
 #def handle_nodata(memfile: MemoryFile, set_to: int = 0, nodata: int = SRTM_NODATA) -> MemoryFile:
 #    

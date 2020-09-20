@@ -145,7 +145,7 @@ def get_arg_parser() -> argparse.ArgumentParser:
                              'interpolation is used.')
     parser.add_argument('-e', '--epsg', type=int, metavar='CODE', default=PSEUDO_MERCATOR,
                         help='The EPSG code of the projection to use for the image. Default is 3857, the '
-                             '"Pseudo-Mercator" projection commonly used by by web applications such as Google Maps '
+                             '"Pseudo-Mercator" projection commonly used by web applications such as Google Maps '
                              'and OpenStreetMap.') 
     parser.add_argument('-l', '--lakes', type=int, nargs='?', const=80, metavar='SIZE',
                         help='Detect lakes (as contiguous regions of a minimum size with the exact same elevation) '

@@ -92,6 +92,7 @@ class BotherTestCase(unittest.TestCase):
         with open(os.path.join(EXAMPLES_DIR, 'ireland.tif'), 'rb') as f:
             memfile = MemoryFile(f)
             memfile = resample(memfile, 0.5)
+            memfile = reproject_raster(memfile, dst_crs='EPSG:3857')
             memfile = set_lakes_to_elev(memfile, 100)
             memfile = raise_low_pixels(memfile)
             im1 = to_png(memfile)
@@ -102,6 +103,7 @@ class BotherTestCase(unittest.TestCase):
         with open(os.path.join(EXAMPLES_DIR, 'ireland.tif'), 'rb') as f:
             memfile = MemoryFile(f)
             memfile = resample(memfile, 0.5)
+            memfile = reproject_raster(memfile, dst_crs='EPSG:3857')
             memfile = set_lakes_to_elev(memfile, 100)
             memfile = raise_low_pixels(memfile, max_brightness=170)
             im1 = to_png(memfile, False, 170)
@@ -115,14 +117,30 @@ class BotherTestCase(unittest.TestCase):
                 
         with open(os.path.join(EXAMPLES_DIR, 'titicaca.tif'), 'rb') as f:
             memfile = MemoryFile(f)
-            memfile = reproject_raster(memfile, dst_crs='EPSG:3857')
+            memfile = reproject_raster(memfile, dst_crs='EPSG:3395')
             memfile = set_lakes_to_elev(memfile, min_lake_size=80)
             im1 = to_png(memfile)
         with Image.open(os.path.join(EXAMPLES_DIR, 'titicaca_lakes_3857.png')) as im2:
             self._assert_images_equal(im1, im2)
+            
+        with open(os.path.join(EXAMPLES_DIR, 'titicaca.tif'), 'rb') as f:
+            memfile = MemoryFile(f)
+            memfile = reproject_raster(memfile, dst_crs='EPSG:4326')
+            memfile = set_lakes_to_elev(memfile, min_lake_size=80)
+            im1 = to_png(memfile)
+        with Image.open(os.path.join(EXAMPLES_DIR, 'titicaca_lakes_4326.png')) as im2:
+            self._assert_images_equal(im1, im2)
+        
+        with open(os.path.join(EXAMPLES_DIR, 'titicaca.tif'), 'rb') as f:
+            memfile = MemoryFile(f)
+            memfile = set_lakes_to_elev(memfile, min_lake_size=80)
+            im1 = to_png(memfile)
+        with Image.open(os.path.join(EXAMPLES_DIR, 'titicaca_lakes_4326.png')) as im2:
+            self._assert_images_equal(im1, im2)
         
         with open(os.path.join(EXAMPLES_DIR, 'alps.tif'), 'rb') as f:
             memfile = MemoryFile(f)
+            memfile = reproject_raster(memfile, dst_crs='EPSG:3857')
             im1 = to_png(memfile)
         with Image.open(os.path.join(EXAMPLES_DIR, 'alps.png')) as im2:
             self._assert_images_equal(im1, im2)
@@ -143,6 +161,7 @@ class BotherTestCase(unittest.TestCase):
         bottom, left, top, right = test_coords['germany_nw']
         with open(os.path.join(EXAMPLES_DIR, 'germany_nw.tif'), 'rb') as f:
             memfile = MemoryFile(f)
+            memfile = reproject_raster(memfile, dst_crs='EPSG:3857')
             memfile = raise_undersea_land(memfile, 1)
             memfile = raise_low_pixels(memfile, 0)
             im1 = to_png(memfile)
