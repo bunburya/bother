@@ -18,8 +18,8 @@ from rasterio.io import MemoryFile
 from bother_utils.srtm import SRTM_NODATA
 
 
-DEFAULT_CRS = 'EPSG:4326' # Mercator
-
+WGS84 = 'EPSG:4326' # Mercator - The default CRS used in the STRM data
+WEB_MERCATOR = 'EPSG:3857' # Web Mercator - The projection used by Google Maps, OpenStreetMap, etc.
 
 #def handle_nodata(memfile: MemoryFile, set_to: int = 0, nodata: int = SRTM_NODATA) -> MemoryFile:
 #    
@@ -96,7 +96,7 @@ def resample(memfile: MemoryFile, scale_factor: float) -> MemoryFile:
         
         return dst_memfile
 
-def reproject_raster(memfile: MemoryFile, dst_crs: str, src_crs: str = DEFAULT_CRS) -> MemoryFile:
+def reproject_raster(memfile: MemoryFile, dst_crs: str, src_crs: str = WGS84) -> MemoryFile:
     """Reproject raster with CRS src_crs to new CRS dst_crs."""
     
     print(f'Reprojecting raster from {src_crs} to {dst_crs}.')
