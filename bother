@@ -22,6 +22,9 @@ from bother_utils.srtm import create_tif_file, clear_cache
 from bother_utils.heightmap import (remove_sea, resample, reproject_raster, set_lakes_to_elev, raise_undersea_land,
                                     raise_low_pixels, to_png, crop_modes, crop_image, scale_image, png_to_file)
 
+# EPSG codes
+WGS84 = 4326  # Mercator - The default CRS used in the STRM data
+PSEUDO_MERCATOR = 3857  # Web Mercator - The projection used by Google Maps, OpenStreetMap, etc.
 
 def error(msg: str):
     print(f'ERROR: {msg}', file=sys.stderr)
@@ -86,7 +89,7 @@ def parse_namespace(ns: argparse.Namespace):
                 memfile = resample(memfile, ns.scale_data)
             if ns.no_sea:
                 memfile = remove_sea(memfile)
-            if ns.epsg:
+            if ns.epsg and (ns.epsg != WGS84):  # The SRTM data already uses WGS84 so no need to reproject to that 
                 memfile = reproject_raster(memfile, dst_crs=f'EPSG:{ns.epsg}')
             if ns.lakes:
                 memfile = set_lakes_to_elev(memfile, ns.lakes)
@@ -140,8 +143,10 @@ def get_arg_parser() -> argparse.ArgumentParser:
                         help='Factor by which to scale the data prior to converting to a PNG. Values lower than one '
                              'will downsample the data; values greater than one will upsample the data. Bilinear '
                              'interpolation is used.')
-    parser.add_argument('-e', '--epsg', type=int, metavar='CODE',
-                        help='The EPSG code of the projection to use for the image. Default is 4326 (WGS 84).') 
+    parser.add_argument('-e', '--epsg', type=int, metavar='CODE', default=PSEUDO_MERCATOR,
+                        help='The EPSG code of the projection to use for the image. Default is 3857, the '
+                             '"Pseudo-Mercator" projection commonly used by web applications such as Google Maps '
+                             'and OpenStreetMap.') 
     parser.add_argument('-l', '--lakes', type=int, nargs='?', const=80, metavar='SIZE',
                         help='Detect lakes (as contiguous regions of a minimum size with the exact same elevation) '
                              'and set their elevation to zero (so they are rendered as water in OpenTTD). If provided, '
