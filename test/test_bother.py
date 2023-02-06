@@ -120,7 +120,7 @@ class BotherTestCase(unittest.TestCase):
             memfile = reproject_raster(memfile, dst_crs='EPSG:3395')
             memfile = set_lakes_to_elev(memfile, min_lake_size=80)
             im1 = to_png(memfile)
-        with Image.open(os.path.join(EXAMPLES_DIR, 'titicaca_lakes_3857.png')) as im2:
+        with Image.open(os.path.join(EXAMPLES_DIR, 'titicaca_lakes_3395.png')) as im2:
             self._assert_images_equal(im1, im2)
             
         with open(os.path.join(EXAMPLES_DIR, 'titicaca.tif'), 'rb') as f:

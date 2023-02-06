@@ -4,6 +4,8 @@
 # change the output of the programme.  This script should be run from within the "test" directory, so that the examples
 # are saved down to "test/examples".
 
+mkdir examples
+
 # Generate TIF files to work with
 pipenv run ../bother -ot examples/mallorca.tif -b 39.195468 2.272535 39.998336 3.584351 examples/mallorca.png
 pipenv run ../bother -ot examples/ireland.tif -b 51.296094 -11.017116 55.596810 -4.403352 examples/ireland.png
@@ -24,7 +26,7 @@ pipenv run ../bother -mb 170 -sd 0.5 -l 100 -rl -b 51.296094 -11.017116 55.59681
 # - in the third example, "reproject" to EPSG 4326 (WGS84, which shouldn't actually perform any reprojection since the
 #   data we get is in WGS84 by default)
 pipenv run ../bother -l -b -16.970092 -70.246331 -15.032316 -68.334710 examples/titicaca_lakes.png
-pipenv run ../bother --epsg 3395 -l -b -16.970092 -70.246331 -15.032316 -68.334710 examples/titicaca_lakes_3359.png
+pipenv run ../bother --epsg 3395 -l -b -16.970092 -70.246331 -15.032316 -68.334710 examples/titicaca_lakes_3395.png
 pipenv run ../bother --epsg 4326 -l -b -16.970092 -70.246331 -15.032316 -68.334710 examples/titicaca_lakes_4326.png
 
 # Germany: Raise undersea pixels and also raise low pixels.

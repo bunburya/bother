@@ -12,5 +12,6 @@ pillow = "*"
 appdirs = "*"
 requests = "*"
 tqdm = "*"
+bother = {editable = true, path = "."}
 
 [requires]
