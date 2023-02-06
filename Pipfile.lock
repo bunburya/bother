@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "84f37c5a00e6d34fdf7357945f8e4e7a188a90e07142719fd3470399b8485a74"
+            "sha256": "516db36bb4bb23cc5595c4b020070d7fbc9c8ff614e137cf81f5c2b0df283a1a"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -37,10 +37,6 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==22.2.0"
-        },
-        "bother": {
-            "editable": true,
-            "path": "."
         },
         "certifi": {
             "hashes": [
