@@ -18,3 +18,6 @@
 
 # Northwest coast, Germany
 53.373069 7.387423 53.814826 8.234738
+
+# Vancouver Island + Oregon (includes a lot of ocean)
+41.82 -129.946 51.468 -116.125

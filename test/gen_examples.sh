@@ -13,6 +13,7 @@ pipenv run ../bother -ot examples/titicaca.tif -b -16.970092 -70.246331 -15.0323
 pipenv run ../bother -ot examples/constance.tif -b 47.321556 8.830936 47.980224 9.860904 examples/constance.png
 pipenv run ../bother -ot examples/alps.tif -b 46.408240 9.555657 46.975534 10.378602 examples/alps.png
 pipenv run ../bother -ot examples/germany_nw.tif -b 53.373069 7.387423 53.814826 8.234738 examples/germany_nw.png
+#pipenv run ../bother -ot examples/vanc_oregon.tif -b 41.82 -129.946 51.468 -116.125 examples/vanc_oregon.png
 
 # Mallorca: Crop image but don't do any other processing (including no reprojection)
 pipenv run ../bother -it examples/mallorca.tif --epsg 4326 --crop 1574x787 c -si 2048x1024 examples/mallorca_no_processing_resized.png
@@ -32,4 +33,5 @@ pipenv run ../bother --epsg 4326 -l -b -16.970092 -70.246331 -15.032316 -68.3347
 # Germany: Raise undersea pixels and also raise low pixels.
 pipenv run ../bother -rl 0 -ru 1 -b 53.373069 7.387423 53.814826 8.234738 examples/germany_nw_undersea_raised.png
 
-
+# Vancouver & Oregon: Crop and scale
+#pipenv run ../bother -it examples/vanc_oregon.tif --crop 11578x11578 c -si 4000x4000 examples/vanc_oregon_scaled.png

@@ -25,9 +25,12 @@ test_coords = {
     'constance': (47.321556, 8.830936, 47.980224, 9.860904),
     'titicaca': (-16.970092, -70.246331, -15.032316, -68.334710),
     'alps': (46.408240, 9.555657, 46.975534, 10.378602),
-    'germany_nw': (53.373069, 7.387423, 53.814826, 8.234738)
+    'germany_nw': (53.373069, 7.387423, 53.814826, 8.234738),
 }
 
+# We don't test this with the rest, because the raw image is too
+# large to compare (PIL crashes)
+vanc_oregon = (41.82, -129.946, 51.468, -116.125)
 
 # No options provided
 MALLORCA_TIF = os.path.join(EXAMPLES_DIR, 'mallorca.tif')
@@ -39,14 +42,12 @@ class BotherTestCase(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        print('SETTING UP CLASS')
         if not os.path.exists(TEST_DIR):
             os.mkdir(TEST_DIR)
         print(os.listdir())
     
     @classmethod
     def tearDownClass(cls):
-        print('TEARING DOWN CLASS')
         shutil.rmtree(TEST_DIR)
     
     def _assert_images_equal(self, im1, im2):
@@ -60,8 +61,8 @@ class BotherTestCase(unittest.TestCase):
             with Image.open(fpath2) as im2:
                 self._assert_images_equal(im1, im2)
     
-    def test_1_srtm_tif(self):
-        """Test the basic downloading of TIF files."""
+    def test_01_srtm_tif(self):
+        """Test the basic creation of TIF files."""
         
         for eg in test_coords:
             bottom, left, top, right = test_coords[eg]
@@ -70,7 +71,7 @@ class BotherTestCase(unittest.TestCase):
             create_tif_file(left, bottom, right, top, os.path.abspath(tif_file))
             self._assert_image_files_equal(tif_file, eg_tif_file)
 
-    def test_2_resize(self):
+    def test_02_resize(self):
         """Test basic cropping and scaling."""
         
         with open(os.path.join(TEST_DIR, 'mallorca.tif'), 'rb') as f:
@@ -86,7 +87,7 @@ class BotherTestCase(unittest.TestCase):
         with Image.open(os.path.join(EXAMPLES_DIR, 'mallorca_no_processing_resized.png')) as im2:
             self._assert_images_equal(im1, im2)
     
-    def test_3_downsample_lakes_raise_low_flat(self):
+    def test_03_downsample_lakes_raise_low_flat(self):
         """Test data resampling, lake detection, raising low pixels and flattening."""
         
         with open(os.path.join(EXAMPLES_DIR, 'ireland.tif'), 'rb') as f:
@@ -110,7 +111,7 @@ class BotherTestCase(unittest.TestCase):
         with Image.open(os.path.join(EXAMPLES_DIR, 'ireland_resampled_lakes_low_raised_flat.png')) as im2:
             self._assert_images_equal(im1, im2)
             
-    def test_4_lakes_all_above_sea_epsg_upsample(self):
+    def test_04_lakes_all_above_sea_epsg_upsample(self):
         """Test a map where everything is above sea level (including one map where there are lakes).
         Also tests reprojection and upsampling of data.
         """
@@ -145,7 +146,7 @@ class BotherTestCase(unittest.TestCase):
         with Image.open(os.path.join(EXAMPLES_DIR, 'alps.png')) as im2:
             self._assert_images_equal(im1, im2)
     
-    def test_5_nested_cache_dir(self):
+    def test_05_nested_cache_dir(self):
         """Test cache directory creation when multiple levels of the cache path do not exist."""
         
         bottom, left, top, right = test_coords["mallorca"]
@@ -155,7 +156,7 @@ class BotherTestCase(unittest.TestCase):
         create_tif_file(left, bottom, right, top, os.path.abspath(tif_file), cache_dir=cache_dir)
         self._assert_image_files_equal(tif_file, eg_tif_file)
     
-    def test_6_raise_undersea(self):
+    def test_06_raise_undersea(self):
         """Test raising undersea pixels."""
         
         bottom, left, top, right = test_coords['germany_nw']
@@ -167,6 +168,13 @@ class BotherTestCase(unittest.TestCase):
             im1 = to_png(memfile)
         with Image.open(os.path.join(EXAMPLES_DIR, 'germany_nw_undersea_raised.png')) as im2:
             self._assert_images_equal(im1, im2)
+
+    def test_07_water_tile(self):
+        """Test coverage of tile areas with no land."""
+        
+        bottom, left, top, right = vanc_oregon
+        tif_file = os.path.join(TEST_DIR, 'vanc_oregon.tif')
+        create_tif_file(left, bottom, right, top, os.path.abspath(tif_file))
 
 if __name__ == '__main__':
     unittest.main()
