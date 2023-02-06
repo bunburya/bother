@@ -58,6 +58,13 @@ def get_tif_fpath(x: int, y: int, cache_dir: str) -> str:
 
 def download_zip(url: str, save_path: str, chunk_size: int = 1024):
     r = requests.get(url, stream=True)
+    if not r.ok:
+        if r.status_code == 404:
+            # 404 can be returned if we try fetch a tile that corresponds to
+            # a part of the world with no land, which is okay.
+            return None
+        else:
+            r.raise_for_status()
     r.raise_for_status()
     total_size_in_bytes = int(r.headers.get('content-length', 0))
     
@@ -129,8 +136,12 @@ def fetch_all_zips(fnames: Dict[Tuple[int, int], str], cache_dir: str) -> Dict[T
             print(f'Downloading {fname} from {url}.')
             fpath = download_zip(url, fpath)
             if fpath is None:
-                print(f'Got 404 when downloading {fname}; there is probably no data available.')
-                continue
+                print(f'WARNING: Received HTTP 404 response when attempting to download {fname}.')
+                print('This could mean that (1) this tile corresponds to a region of the earth '
+                      'where there is no land; (2) this tile is outside the coverage area of the '
+                      'SRTM data; or (3) there is some issue with the website (which may be '
+                      'temporary).')
+                print('We will assume the cause is (1) and will proceed accordingly.')
         else:
             print(f'{fname} was cached in {cache_dir}.')
         fpaths[xy] = fpath
@@ -162,7 +173,10 @@ def create_tif_file(left: float, bottom: float, right: float, top: float, to_fil
         zip_fnames[(x, y)] = ZIP_FNAME.format(x=x, y=y)
     zip_fpaths = fetch_all_zips(zip_fnames, cache_dir)
     unzip_all(zip_fpaths.values(), cache_dir)
-    srcs = [rasterio.open(get_tif_fpath(x, y, cache_dir), 'r', nodata=nodata) for x, y in xy]
+    srcs = []
+    for x, y in xy:
+        if zip_fpaths[(x, y)] is not None:
+            srcs.append(rasterio.open(get_tif_fpath(x, y, cache_dir), 'r', nodata=nodata))
     print(f'Creating TIF file from following files: {[s.name for s in srcs]}.')
     #print(f'Heights are: {[s.height for s in srcs]}.')
     #print(f'Widths are: {[s.width for s in srcs]}.')
