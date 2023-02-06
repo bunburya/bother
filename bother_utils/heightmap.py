@@ -315,6 +315,12 @@ def crop_image(im: Image, width: int, height: int, mode: str) -> Image:
         box[0] = (im.width - width) // 2
     box[2] = box[0] + width
     
+
+    # Image.crop chokes on large images unless we increase the max size
+    size = width * height
+    if size > Image.MAX_IMAGE_PIXELS:
+        Image.MAX_IMAGE_PIXELS = size
+
     return im.crop(box)
 
 def scale_image(im: Image, width: int, height: int) -> Image:
