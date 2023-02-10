@@ -14,7 +14,7 @@ if os.name == 'nt':
     
 setup(
     name='Bother',
-    version='1.0',
+    version='1.1',
     packages=find_packages(),
     scripts=scripts,
     install_requires=['numpy', 'rasterio', 'pillow', 'requests', 'appdirs', 'tqdm'],
